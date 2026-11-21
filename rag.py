@@ -43,8 +43,15 @@ def get_client() -> OpenAI:
     """Build an OpenAI client pointed at Groq."""
     api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
+        try:
+            import streamlit as st
+
+            api_key = st.secrets.get("GROQ_API_KEY") or st.secrets.get("OPENAI_API_KEY")
+        except Exception:
+            pass
+    if not api_key:
         raise RuntimeError(
-            "Missing GROQ_API_KEY. Set it in your environment or a .env file."
+            "Missing GROQ_API_KEY. Set it in your environment or a .env file or Streamlit secrets."
         )
     base = os.getenv("OPENAI_BASE_URL", GROQ_BASE_URL)
     return OpenAI(api_key=api_key, base_url=base, timeout=45.0)
@@ -97,10 +104,21 @@ def _call_llm(
 ) -> str:
     """One Groq chat completion. Temperature 0-0.2 keeps quotes stable."""
     client = get_client()
+    model = os.getenv("GROQ_MODEL")
+    if not model:
+        try:
+            import streamlit as st
+
+            model = st.secrets.get("GROQ_MODEL")
+        except Exception:
+            pass
+    if not model:
+        model = DEFAULT_MODEL
+
     for attempt in range(3):
         try:
             response = client.chat.completions.create(
-                model=os.getenv("GROQ_MODEL", DEFAULT_MODEL),
+                model=model,
                 temperature=temperature,
                 max_tokens=MAX_TOKENS,
                 messages=[

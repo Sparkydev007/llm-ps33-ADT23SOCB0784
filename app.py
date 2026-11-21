@@ -24,6 +24,15 @@ try:
 except ImportError:
     pass
 
+# Synchronize Streamlit Community Cloud secrets into environment if present
+try:
+    if "GROQ_API_KEY" in st.secrets and not os.getenv("GROQ_API_KEY"):
+        os.environ["GROQ_API_KEY"] = str(st.secrets["GROQ_API_KEY"])
+    if "GROQ_MODEL" in st.secrets and not os.getenv("GROQ_MODEL"):
+        os.environ["GROQ_MODEL"] = str(st.secrets["GROQ_MODEL"])
+except Exception:
+    pass
+
 SAMPLE_PDF = Path("data/ncert_class10_science_ch6_life_processes.pdf")
 UPLOAD_DIR = Path("cache/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
